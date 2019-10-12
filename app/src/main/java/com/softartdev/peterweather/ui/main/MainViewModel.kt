@@ -1,4 +1,4 @@
-package com.softartdev.peterweather.ui
+package com.softartdev.peterweather.ui.main
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -24,8 +24,13 @@ class MainViewModel : ViewModel() {
         weatherLiveData.postValue(WeatherState.Loading)
         weatherRepo.weather().enqueue(object : Callback<Weather> {
             override fun onResponse(call: Call<Weather>, response: Response<Weather>) {
-                val weather = response.body()
-                weatherLiveData.postValue(WeatherState.Success(weather))
+                if (response.isSuccessful) {
+                    val weather = response.body()
+                    weatherLiveData.postValue(WeatherState.Success(weather))
+                } else {
+                    val message = "${response.code()}: ${response.message()}"
+                    weatherLiveData.postValue(WeatherState.Error(message))
+                }
             }
             override fun onFailure(call: Call<Weather>, t: Throwable) {
                 weatherLiveData.postValue(WeatherState.Error(t.message))
